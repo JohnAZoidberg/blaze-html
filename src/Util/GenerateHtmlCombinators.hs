@@ -474,18 +474,24 @@ rssXml = HtmlVariant
     , docType = ["<?xml version=\"1.0\" encoding=\"UTF-8\"?>"]
     , parents =
         [ "rss", "channel", "title", "link", "language", "description", "item"
-        , "enclosure", "pubDate", "guid"
+        , "pubDate", "guid", "lastBuildDate", "copyright"
         ] ++ (map ("itunes:" ++)
-          [ "author", "subtitle", "owner", "explicit", "image", "category"
+          [ "author", "subtitle", "owner", "explicit"
           , "summary", "name", "email", "duration"
           ])
-    , leafs = []
-        --[ "enclosure", "itunes:category"
-        --]
-    , attributes =
-        [ "xmlns:itunes", "href", "text", "url", "type", "length"
+    , leafs =
+        [ "enclosure"
         ]
-    , selfClosing = False  -- TODO think about what this means
+	++ (map ("atom:" ++)
+          [ "link"
+          ])
+        ++ (map ("itunes:" ++)
+          [ "image", "category"
+          ])
+    , attributes =
+        [ "xmlns:itunes", "href", "text", "url", "type", "length", "rel"
+        ]
+    , selfClosing = True  -- TODO think about what this means
     }
 
 -- | A map of HTML variants, per version, lowercase.
