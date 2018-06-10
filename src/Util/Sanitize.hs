@@ -31,6 +31,7 @@ sanitize str
     --
     -- > removeDash "foo-bar" == "fooBar"
     --
+    removeDash (':' : x : xs) = toUpper x : removeDash xs
     removeDash ('-' : x : xs) = toUpper x : removeDash xs
     removeDash (x : xs) = x : removeDash xs
     removeDash [] = []

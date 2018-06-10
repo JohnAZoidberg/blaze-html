@@ -54,8 +54,8 @@ isNameClash v t
 
 -- | Write an HTML variant.
 --
-writeHtmlVariant :: HtmlVariant -> IO ()
-writeHtmlVariant htmlVariant = do
+writeHtmlVariant :: String -> HtmlVariant -> IO ()
+writeHtmlVariant topLevelTag htmlVariant = do
     -- Make a directory.
     createDirectoryIfMissing True basePath
 
@@ -82,7 +82,7 @@ writeHtmlVariant htmlVariant = do
         , "import Text.Blaze.Html"
         , ""
         , makeDocType $ docType htmlVariant
-        , makeDocTypeHtml $ docType htmlVariant
+        , makeDocTypeHtml (docType htmlVariant) topLevelTag
         , unlines appliedTags
         ]
 
@@ -172,8 +172,9 @@ makeDocType lines' = unlines
 -- | Generate a function for the HTML tag (including the doctype).
 --
 makeDocTypeHtml :: [String]  -- ^ The doctype.
+                -> String    -- ^ topLevelTag
                 -> String    -- ^ Resulting combinator function.
-makeDocTypeHtml lines' = unlines
+makeDocTypeHtml lines' topLevelTag = unlines
     [ DO_NOT_EDIT
     , "-- | Combinator for the @\\<html>@ element. This combinator will also"
     , "-- insert the correct doctype."
@@ -188,7 +189,7 @@ makeDocTypeHtml lines' = unlines
     , "--"
     , "docTypeHtml :: Html  -- ^ Inner HTML."
     , "            -> Html  -- ^ Resulting HTML."
-    , "docTypeHtml inner = docType >> html inner"
+    , "docTypeHtml inner = docType >> " ++ topLevelTag ++ " inner"
     , "{-# INLINE docTypeHtml #-}"
     ]
 
@@ -467,6 +468,25 @@ xhtml5 = HtmlVariant
     , selfClosing = True
     }
 
+rssXml :: HtmlVariant
+rssXml = HtmlVariant
+    { version = ["RssXml"]
+    , docType = ["<?xml version=\"1.0\" encoding=\"UTF-8\"?>"]
+    , parents =
+        [ "rss", "channel", "title", "link", "language", "description", "item"
+        , "enclosure", "pubDate", "guid"
+        ] ++ (map ("itunes:" ++)
+          [ "author", "subtitle", "owner", "explicit", "image", "category"
+          , "summary", "name", "email", "duration"
+          ])
+    , leafs = []
+        --[ "enclosure", "itunes:category"
+        --]
+    , attributes =
+        [ "xmlns:itunes", "href", "text", "url", "type", "length"
+        ]
+    , selfClosing = False  -- TODO think about what this means
+    }
 
 -- | A map of HTML variants, per version, lowercase.
 --
@@ -482,5 +502,15 @@ htmlVariants = M.fromList $ map (show &&& id)
     , xhtml5
     ]
 
+-- | A map of HTML variants, per version, lowercase.
+--
+xmlVariants :: Map String HtmlVariant
+xmlVariants = M.fromList $ map (show &&& id)
+    [ rssXml
+    ]
+
 main :: IO ()
-main = mapM_ (writeHtmlVariant . snd) $ M.toList htmlVariants
+main = do
+  -- TODO should take topLevelTag from the variant itself
+  mapM_ ((writeHtmlVariant "html") . snd) $ M.toList htmlVariants
+  mapM_ ((writeHtmlVariant "rss") . snd) $ M.toList xmlVariants
