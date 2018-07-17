@@ -475,14 +475,21 @@ rssXml = HtmlVariant
     , parents =
         [ "rss", "channel", "title", "link", "language", "description", "item"
         , "pubDate", "guid", "lastBuildDate", "copyright"
-        ] ++ (map ("itunes:" ++)
-          [ "author", "subtitle", "owner", "explicit"
+        ]
+        ++ (map ("itunes:" ++)
+          [ "author", "subtitle", "owner", "explicit", "blocked"
           , "summary", "name", "email", "duration"
           ])
+        ++ (map ("media:" ++)
+          [ "content"
+          ])
+        ++ (map ("content:" ++)
+          [ "encoded"
+          ])
     , leafs =
-        [ "enclosure"
+        [ "enclosure", "mediaContent"
         ]
-	++ (map ("atom:" ++)
+        ++ (map ("atom:" ++)
           [ "link"
           ])
         ++ (map ("itunes:" ++)
@@ -490,6 +497,7 @@ rssXml = HtmlVariant
           ])
     , attributes =
         [ "xmlns:itunes", "href", "text", "url", "type", "length", "rel"
+        , "isDefault", "medium", "isPermaLink"
         ]
     , selfClosing = True  -- TODO think about what this means
     }
